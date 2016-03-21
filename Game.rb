@@ -69,8 +69,12 @@ class Dice
     end
   end
   
-  def active_dice_pips()
-    return @active_dice
+  def active_dice_pips(dice_index = nil)
+    if dice_index != nil
+      return @active_dice[dice_index]
+    else
+      return @active_dice
+    end
   end
   
   def fixed_dice_pips()

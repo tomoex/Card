@@ -37,15 +37,45 @@ class Skill
   
   def parameter_type()
   end
+
+  def passive?()
+    return false
+  end
 end
 
 
-class SkillAddInit < Skill
+class SkillAddInit1 < Skill
   def use(dice, parameter)
+    dice.add(Dice::DICE_PIPS_1)
+    @used = true
+    
+    return true
   end
   
   def parameter_type()
     return Skill::NONE
+  end
+
+  def passive?()
+    return true
+  end
+end
+
+class SkillAddInit2 < Skill
+  def use(dice, parameter)
+    dice.add(Dice::DICE_PIPS_1)
+    dice.add(Dice::DICE_PIPS_1)
+    @used = true
+    
+    return true
+  end
+  
+  def parameter_type()
+    return Skill::NONE
+  end
+
+  def passive?()
+    return true
   end
 end
 
@@ -53,6 +83,8 @@ class SkillAddActive1 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_1)
     @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -64,6 +96,8 @@ class SkillAddActive2 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_2)
     @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -75,6 +109,8 @@ class SkillAddActive3 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_3)
     @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -86,6 +122,8 @@ class SkillAddActive4 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_4)
     @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -97,6 +135,8 @@ class SkillAddActive5 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_5)
     @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -108,6 +148,8 @@ class SkillAddActive6 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_6)
     @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -117,8 +159,17 @@ end
 
 class SkillAddActiveN < Skill
   def use(dice, parameter)
-    dice_pips = @parameter.active_dice_index_n[0]
+    dice_pips = parameter.abs_pips_n[0]
+    
+    # ダイス出目の範囲チェック
+    if !(Dice::DICE_PIPS_1 <= dice_pips and dice_pips <= Dice::DICE_PIPS_6)
+      return false
+    end
+    
     dice.add(dice_pips)
+    @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -128,28 +179,86 @@ end
 
 class SkillChangePlus123 < Skill
   def use(dice, parameter)
+    dice_index = parameter.active_dice_index_n[0]
+    dice_diff  = parameter.diff_pips_n[0]
+    
+    # アクティブダイス選択の範囲チェック
+    if !(0 <= dice_index and dice_index < dice.active_num)
+      return false
+    end
+    # ダイス変化量の範囲チェック
+    if !(1 <= dice_diff and dice_diff <= 3)
+      return false
+    end
+    
+    dice_pips = dice.active_dice_pips(dice_index) + dice_diff
+    
+    # ダイスの出目の範囲チェック
+    if !(Dice::DICE_PIPS_1 <= dice_pips and dice_pips <= Dice::DICE_PIPS_6)
+      return false
+    end
+    
+    # 出目変更
+    dice.change(dice_index, dice_pips)
+    
+    @used = true
   end
   
   def parameter_type()
-    return Skill::NONE
+    return Skill::DICE_INDEX_AND_DIFF_PIPS
   end
 end
 
-class SkillChangePlus1N < Skill
-  def use(dice, parameter)
+class SkillChangePlusNN < Skill
+  def use(dice, parameter, diff)
+    dice_index = parameter.active_dice_index_n.clone()
+    
+    # アクティブダイス選択の範囲チェック
+    dice_index.each { |index|
+      if !(0 <= index and index < dice.active_num)
+        return false
+      end
+    }
+    # アクティブダイス選択の重複チェック                                                                                                                                                                                                                                                                                                                                  
+    if dice_index.uniq.length != parameter.active_dice_index_n.uniq.length
+      return false
+    end
+    
+    dice_pips = []
+    dice.active_dice_pips.each { |pips|
+      dice_pips.push(pips + diff) 
+    }
+    
+    # ダイスの出目の範囲チェック
+    dice_pips.each { |pips|
+      if !(Dice::DICE_PIPS_1 <= pips and pips <= Dice::DICE_PIPS_6)
+        return false
+      end
+    }
+    
+    # 出目変更
+    dice_index.each_with_index { |index, i|
+      dice.change(index, dice_pips[i])
+    }
+    
+    @used = true
   end
   
   def parameter_type()
-    return Skill::NONE
+    return Skill::DICE_INDEX_N
   end
 end
 
-class SkillChangePlus2N < Skill
+
+class SkillChangePlus1N < SkillChangePlusNN
   def use(dice, parameter)
+    super(dice, parameter, 1)
   end
-  
-  def parameter_type()
-    return Skill::NONE
+end
+
+class SkillChangePlus2N < SkillChangePlusNN
+  def use(dice, parameter)
+    super(dice, parameter, 2)
   end
 end
 

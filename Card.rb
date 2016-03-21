@@ -79,26 +79,26 @@ class Card
     
     skill_list =
     [
-      SkillAddActive1.new,        # 道化師
-      SkillAddActive1.new,        # ペテン師
-      SkillAddActive1.new,        # 農夫
-      SkillAddActive1.new,        # メイド
-      SkillAddActive1.new,        # 哲学者
+      SkillAddActive1.new,        # 道化師[未]
+      SkillAddInit1.new,          # ペテン師
+      SkillAddInit1.new,          # 農夫
+      SkillChangePlus123.new,     # メイド
+      SkillAddActive1.new,        # 哲学者[未]
       SkillAddActive1.new,        # 職人
       SkillAddActive2.new,        # 衛兵
       SkillAddActive3.new,        # 狩人
-      SkillAddActive1.new,        # 天文学者
-      SkillAddActive1.new,        # 商人
-      SkillAddActive1.new,        # 貴婦人
+      SkillAddActive1.new,        # 天文学者[未]
+      SkillAddActive1.new,        # 商人[未]
+      SkillChangePlus1N.new,      # 貴婦人
       SkillAddActive4.new,        # 質屋
       SkillAddActive5.new,        # 騎士
-      SkillAddActive1.new,        # 魔術師
-      SkillAddActive1.new,        # 錬金術師
+      SkillAddActive1.new,        # 魔術師[未]
+      SkillAddActive1.new,        # 錬金術師[未]
       SkillAddActive6.new,        # 司教
-      SkillAddActive1.new,        # 貴族
-      SkillAddActive1.new,        # 将軍
+      SkillChangePlus2N.new,      # 貴族
+      SkillAddInit2.new,          # 将軍
       SkillAddActiveN.new,        # 王妃
-      SkillAddActive1.new,        # 国王
+      SkillAddActive1.new,        # 国王[未]
     ]
     
     @skill = skill_list[type]

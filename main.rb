@@ -35,8 +35,12 @@ def main()
       game.dice.add(Dice::DICE_PIPS_1)
       game.dice.add(Dice::DICE_PIPS_2)
       game.dice.add(Dice::DICE_PIPS_3)
-      # カード効果がある場合、n個のダイスを投入
-      # game.dice.add(player.deck.additional_dice)
+      # 初期ダイス追加効果を適用
+      (0..(player.deck.size - 1)).each{|index|
+        if player.deck.card(index).skill.passive?
+          player.deck.card(index).skill.use(game.dice, nil)
+        end
+      }
       
       # ダイスがすべて確定するまで繰り返し
       while game.dice.active_num != 0 do
@@ -53,8 +57,11 @@ def main()
           if card_index != Player::SKILL_NOT_SELECT
             # カード効果の適用をする
             skill = player.deck.card(card_index).skill
-            skill_parameter = player.set_skill_parameter(skill.parameter_type)
-            skill.use(game.dice, skill_parameter)
+            skill_parameter = player.set_skill_parameter(game.dice, skill.parameter_type)
+            success = skill.use(game.dice, skill_parameter)
+            if !success
+              puts "能力の使用に失敗(入力エラー)"
+            end
           else
             break
           end
