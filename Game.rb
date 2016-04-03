@@ -211,6 +211,24 @@ class TurnOfPlayer
   end
 end
 
+class OrderOfPlayer
+  def initialize()
+    @normal_order = []
+    @final_order = []
+  end
+  
+  attr_reader   :normal_order
+  attr_reader   :final_order
+  
+  def set_normal_order(orders)
+    @normal_order = orders.clone
+  end
+  
+  def set_final_order(orders)
+    @final_order = @normal_order.clone
+  end
+end
+
 class Game
   MIN_PLAYERS = 2
   MAX_PLAYERS = 5
@@ -222,6 +240,7 @@ class Game
     @stock = Stock.new
     @dice = Dice.new
     @players = [nil, nil, nil, nil, nil]
+    @order = OrderOfPlayer.new
     @turn = TurnOfPlayer.new
     @final_round = false
     @end_of_game = false
@@ -229,6 +248,7 @@ class Game
   
   def start()
     @stock.setup(player_num())
+    @order.set_normal_order(Array(0..(player_num()-1)))
     @turn.setup(player_num())
   end
   
