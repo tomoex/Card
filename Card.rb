@@ -24,7 +24,7 @@ class Card
   GEENERAL      = 17  # 将軍
   QUEEN         = 18  # 王妃
   KING          = 19  # 国王
-  TYPE_NUM      = 20  # カードの種類
+  TYPE_NUM      = 20  # カードの種類の数
   
   CARD_NAME =
   [
@@ -79,7 +79,7 @@ class Card
     
     skill_list =
     [
-      SkillAddActive1.new,        # 道化師[未]
+      SkillReThrow.new,           # 道化師
       SkillAddInit1.new,          # ペテン師
       SkillAddInit1.new,          # 農夫
       SkillChangePlus123.new,     # メイド
@@ -88,7 +88,7 @@ class Card
       SkillAddActive2.new,        # 衛兵
       SkillAddActive3.new,        # 狩人
       SkillAddActive1.new,        # 天文学者[未]
-      SkillAddActive1.new,        # 商人[未]
+      SkillReThrowN.new,          # 商人
       SkillChangePlus1N.new,      # 貴婦人
       SkillAddActive4.new,        # 質屋
       SkillAddActive5.new,        # 騎士

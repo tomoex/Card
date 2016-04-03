@@ -282,6 +282,19 @@ end
 
 class SkillReThrow < Skill
   def use(dice, parameter)
+    dice_index = parameter.active_dice_index_n[0]
+    
+    # アクティブダイス選択の範囲チェック
+    if !(0 <= dice_index and dice_index < dice.active_num)
+      return false
+    end
+    
+    # ダイスを振りなおす
+    dice.throwActiveAt(dice_index)
+    
+    @used = true
+    
+    return true
   end
   
   def parameter_type()
@@ -291,10 +304,31 @@ end
 
 class SkillReThrowN < Skill
   def use(dice, parameter)
+    dice_index = parameter.active_dice_index_n.clone()
+    
+    # アクティブダイス選択の範囲チェック
+    dice_index.each { |index|
+      if !(0 <= index and index < dice.active_num)
+        return false
+      end
+    }
+    # アクティブダイス選択の重複チェック                                                                                                                                                                                                                                                                                                                                  
+    if dice_index.uniq.length != parameter.active_dice_index_n.uniq.length
+      return false
+    end
+    
+    # ダイスを振りなおす
+    dice_index.each { |index|
+      dice.throwActiveAt(index)
+  }
+    
+    @used = true
+    
+    return true
   end
   
   def parameter_type()
-    return Skill::DICE_INDEX
+    return Skill::DICE_INDEX_N
   end
 end
 

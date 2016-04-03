@@ -44,6 +44,9 @@ class Player
         end
       end
     when Skill::DICE_INDEX then
+      puts "アクティブダイス選択([0]-[#{dice.active_num-1}])#{dice.active_dice_pips}"
+      print "> "
+      parameter.active_dice_index_n.push(STDIN.gets.to_i)
     when Skill::DICE_INDEX_AND_DIFF_PIPS then
       puts "アクティブダイス選択([0]-[#{dice.active_num-1}])#{dice.active_dice_pips}"
       print "> "

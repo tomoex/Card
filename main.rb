@@ -115,7 +115,8 @@ def main()
     end
     
     # 国王が取得されている場合、最終ラウンドを行う
-    if final_round?
+    if game.final_round?
+      puts "最終ラウンド!!"
       # 最終ラウンド終了までループ
         # 手番となるプレイヤーを指定
         

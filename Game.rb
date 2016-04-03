@@ -57,6 +57,12 @@ class Dice
   end
   
   def throwActiveAt(dice_index)
+    if dice_index < @active_dice.length
+      @active_dice[dice_index] = DICE_PIPS_6    # 仮に6に置き換える
+      return true
+    else
+      return false
+    end
   end
   
   def fix(dice_index)
@@ -139,6 +145,15 @@ class Stock
     return true
   end
   
+  def existKing?()
+    # 国王が獲得済みならtrue
+    if @stock[Card::KING] == 0
+      return true
+    else
+      return false
+    end
+  end
+  
   def card_index_name_list()
     # デバッグ用
     array = []
@@ -154,6 +169,8 @@ class Stock
 end
 
 class TurnOfPlayer
+  NOT_EDGE = 0
+  EDGE = 1
   def initialize()
     @now_player_index = 0
     @clockwise        = true
@@ -175,11 +192,13 @@ class TurnOfPlayer
       @clockwise = false
       # ラウンドを次に進める
       @round += 1
+      return TurnOfPlayer::EDGE
     elsif (@clockwise == false) and (@now_player_index == 0)
       # 端の場合は向きの反転のみ
       @clockwise = true
       # ラウンドを次に進める
       @round += 1
+      return TurnOfPlayer::EDGE
     else
       # 端でない場合はインデックスのみ
       if @clockwise
@@ -187,6 +206,7 @@ class TurnOfPlayer
       else
         @now_player_index -= 1
       end
+      return TurnOfPlayer::NOT_EDGE
     end
   end
 end
@@ -203,6 +223,8 @@ class Game
     @dice = Dice.new
     @players = [nil, nil, nil, nil, nil]
     @turn = TurnOfPlayer.new
+    @final_round = false
+    @end_of_game = false
   end
   
   def start()
@@ -232,20 +254,24 @@ class Game
   end
   
   def end_of_game?()
-    return false
+    return @end_of_game
   end
   
   def final_round?()
-    return false
+    return @final_round
   end
   
   def turn_end()
     # 次のプレイヤーのターンにする
-    @turn.next()
-    # 国王がとられている and ラウンドの最後なら最終ラウンドにする
+    round = @turn.next()
+    # 最終ラウンドではない and 国王がとられている and ラウンドの最後 なら最終ラウンドにする
+    if @final_round == false and @stock.existKing? == true and round == TurnOfPlayer::EDGE
+      @final_round = true
+    end
   end
   
   def game_end()
+    @end_of_game = true
   end
   
   def dice()
