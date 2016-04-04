@@ -235,6 +235,7 @@ class Game
   
   MIN_PLAYERS_INDEX = 0
   MAX_PLAYERS_INDEX = 4
+  INVALID_PLAYER_INDEX = 255
   
   def initialize()
     @stock = Stock.new
@@ -248,8 +249,9 @@ class Game
   
   def start()
     @stock.setup(player_num())
-    @order.set_normal_order(Array(0..(player_num()-1)))
     @turn.setup(player_num())
+    # プレイ順は仮にここで決める、自由に決定できるようにしたい
+    @order.set_normal_order(Array(0..(player_num()-1)))
   end
   
   def join(player, player_index)
@@ -284,14 +286,15 @@ class Game
   def turn_end()
     # 次のプレイヤーのターンにする
     round = @turn.next()
-    # 最終ラウンドではない and 国王がとられている and ラウンドの最後 なら最終ラウンドにする
-    if @final_round == false and @stock.existKing? == true and round == TurnOfPlayer::EDGE
-      @final_round = true
+
+    # 状態遷移
+    if !final_round? and @stock.existKing? == true and round == TurnOfPlayer::EDGE
+      # 最終ラウンドではない and 国王がとられている and ラウンドの最後 なら最終ラウンドにする
+      shift_final_round()
+    elsif final_round? and round == TurnOfPlayer::EDGE
+      # 最終ラウンドである and ラウンドの最後 ならゲーム終了にする
+      shift_game_end()
     end
-  end
-  
-  def game_end()
-    @end_of_game = true
   end
   
   def dice()
@@ -309,9 +312,27 @@ class Game
   def now_player_index()
     return @turn.now_player_index
   end
+
+  def winner()
+    @players.each_with_index { |player, index|
+      if player != nil and player.have_king?
+        return index
+      end
+    }
+    return INVALID_PLAYER_INDEX
+  end
   
   def round()
     return @turn.round
+  end
+
+  private
+  def shift_final_round()
+    @final_round = true
+  end
+
+  def shift_game_end()
+    @end_of_game = true
   end
 end
 

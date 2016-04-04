@@ -72,6 +72,16 @@ class Player
   def deck()
     return @deck
   end
+
+  def have_king?()
+    (0..(@deck.size - 1)).each { |index|
+      if @deck.card(index).type == Card::KING
+        return true
+      end
+    }
+
+    return false
+  end
 end
 
 
@@ -79,10 +89,7 @@ class Deck
   def initialize()
     @deck = []
   end
-  
-  def additional_dice()
-  end
-  
+
   def keep(card)
     @deck.push(card)
   end
