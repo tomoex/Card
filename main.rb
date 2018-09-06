@@ -8,6 +8,60 @@ def select_player(game)
   game.join(Player.new, 1)
 end
 
+def view_dice(active_dices, fix_dices)
+  dice_AA = [
+    ["+-------+", "+-------+", "+-------+", "+-------+", "+-------+", "+-------+"],
+    ["|       |", "| *     |", "| *     |", "| *   * |", "| *   * |", "| *   * |"],
+    ["|   *   |", "|       |", "|   *   |", "|       |", "|   *   |", "| *   * |"],
+    ["|       |", "|     * |", "|     * |", "| *   * |", "| *   * |", "| *   * |"],
+    ["+-------+", "+-------+", "+-------+", "+-------+", "+-------+", "+-------+"]
+  ]
+
+  index_AA = [
+    ["+-------+", "+-------+", "+-------+", "+-------+", "+-------+", "+-------+"],
+    ["|       |", "| *     |", "| *     |", "| *   * |", "| *   * |", "| *   * |"],
+    ["|   *   |", "|       |", "|   *   |", "|       |", "|   *   |", "| *   * |"],
+    ["|       |", "|     * |", "|     * |", "| *   * |", "| *   * |", "| *   * |"],
+    ["+-------+", "+-------+", "+-------+", "+-------+", "+-------+", "+-------+"]
+  ]
+
+  prefix_AA =[
+    ["           ", "          "],
+    ["           ", "          "],
+    [" active -> ", " fixed -> "],
+    ["           ", "          "],
+    ["           ", "          "]
+  ]
+
+  if active_dices != nil
+    print "           "
+    active_dices.each_with_index { |pips, i|
+      print "[#{i}]       "
+    }
+    puts ""
+  end
+
+  (0..4).each { |part|
+    print prefix_AA[part][0]
+
+    if active_dices != nil
+      active_dices.each { |pips|
+        print dice_AA[part][pips - 1] + " "
+      }
+    end
+
+    print prefix_AA[part][1]
+
+    if fix_dices != nil
+      fix_dices.each { |pips|
+        print dice_AA[part][pips - 1] + " "
+      }
+    end
+
+    puts ""
+  }
+end
+
 def main()
   game = Game.new
   # 参加プレイヤー数を決定
@@ -39,6 +93,7 @@ def main()
       end
     }
     puts "#{game.dice.active_num}個の初期ダイス act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
+    
 
     # ダイスがすべて確定するまで繰り返し
     while game.dice.active_num != 0 do
@@ -68,6 +123,7 @@ def main()
       init_active_dice_num = game.dice.active_num
       while true do
         puts "確定させるダイスを選ぶ([0]-[#{game.dice.active_num-1}]:選択, -1:終了) act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
+        view_dice(game.dice.active_dice_pips, game.dice.fixed_dice_pips)
 
         dice_index = player.fix_dice(game.dice)
 
@@ -91,6 +147,7 @@ def main()
       puts "ダイスを確定した #{game.dice.fixed_dice_pips}"
     end
     puts "すべてのダイスが確定した #{game.dice.fixed_dice_pips}"
+    view_dice(game.dice.active_dice_pips, game.dice.fixed_dice_pips.sort)
 
     # 山札からカードを取得する
     while true do
