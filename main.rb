@@ -29,22 +29,22 @@ def main()
 
     # ダイスを3つ投入
     game.dice.reset()
-    game.dice.add(Dice::DICE_PIPS_1)
-    game.dice.add(Dice::DICE_PIPS_2)
-    game.dice.add(Dice::DICE_PIPS_3)
+    game.dice.add()
+    game.dice.add()
+    game.dice.add()
     # 初期ダイス追加効果を適用
     (0..(player.deck.size - 1)).each{|index|
       if player.deck.card(index).skill.passive?
         player.deck.card(index).skill.use(game.dice, nil)
       end
     }
+    puts "#{game.dice.active_num}個の初期ダイス act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
 
     # ダイスがすべて確定するまで繰り返し
     while game.dice.active_num != 0 do
       # ダイスを振る
-      puts "#{game.dice.active_num}個、ダイスを振った act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
-
       game.dice.throwActive()
+      puts "#{game.dice.active_num}個、アクティブダイスを振った act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
 
       # 任意のカード効果を適用する
       while player.deck.availabel_skill_num != 0 do
@@ -97,10 +97,12 @@ def main()
       puts "取得するカードを選択する #{player.deck.card_name_list}"
       puts "山札 #{game.stock.card_index_name_list()}"
       card_index = player.select_card(game.dice)
-      if game.stock.draw?(card_index, game.dice)
-        card = game.stock.draw(card_index)
+      card = game.stock.draw(card_index, game.dice.active_dice_pips())
+      if card != nil
         player.deck.keep(card)
         break
+      else
+        puts "そのカードを取得できない"
       end
     end
 

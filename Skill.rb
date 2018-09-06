@@ -23,27 +23,32 @@ class Skill
   end
   
   def initialize()
-    @used = false
+    @used = false   # スキル使用済みかどうか
   end
   
   attr_reader :used
   
   def reset()
+    # スキル使用状態をリセットする
     @used = false
   end
   
   def use(dice, parameter)
+    # スキルを使用しスキル効果を適用する
   end
   
   def parameter_type()
+    # スキル使用時に必要なパラメータ(例:出目操作スキルの場合、どのダイスの目を変えるのか？など)の種類
   end
 
   def passive?()
+    # 持っているだけで効果があるタイプのカードか？
     return false
   end
 end
 
 
+# スキル効果:初期ダイス+1
 class SkillAddInit1 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_1)
@@ -61,6 +66,7 @@ class SkillAddInit1 < Skill
   end
 end
 
+# スキル効果:初期ダイス+2
 class SkillAddInit2 < Skill
   def use(dice, parameter)
     dice.add(Dice::DICE_PIPS_1)

@@ -4,6 +4,27 @@ require_relative 'Card'
 require_relative 'Player'
 
 class Dice
+  # ゲームで利用するダイスのセット(つまり複数のダイスの組を意味する)
+  #
+  # このクラスは下記で定義するダイスのふるまいと、ダイスのセットに含まれるダイスの目を参照する機能を提供する。
+  #
+  # - ダイスのセットは0個以上の任意個のダイスの集合である
+  # - ダイスのセットの初期状態でのダイスの個数は0個である
+  # - ダイスのセットにはダイスを追加することができる
+  # - ダイスのセットを初期状態に戻す以外の方法で追加したダイスを減らすことはできない
+  #
+  # - ダイスは6面ダイスである
+  # - ダイスは2種類の状態のいずれかに属する
+  #     - アクティブダイス
+  #     - 確定ダイス
+  # - ダイスのセットにダイスを加えたとき、そのダイスはアクティブダイスとなる
+  # - アクティブダイスは
+  #     - 振ることができる(ランダムな目に変えることができる)
+  #     - 任意の目に変更することができる
+  #     - 確定ダイスにすることができる
+  # - 確定ダイスは
+  #     - 目の変更をすることができない
+
   DICE_PIPS_1 = 1
   DICE_PIPS_2 = 2
   DICE_PIPS_3 = 3
@@ -17,24 +38,28 @@ class Dice
   end
   
   def reset()
+    # ダイスのセットを初期状態(ダイスがない)に戻す
     @active_dice = []
     @fixed_dice = []
   end
   
   def num()
+    # ダイスのセットに含まれるすべてのダイスの数
     return @active_dice.length + @fix_dice.length
   end
   
   def active_num()
+    # ダイスのセットに含まれるアクティブダイスの数
     return @active_dice.length
   end
   
   def fix_num()
+    # ダイスのセットに含まれる固定ダイスの数
     return @fixed_dice.length
   end
   
-  def add(pips)
-    # 新規にアクティブダイスを追加する
+  def add(pips = Dice::DICE_PIPS_1)
+    # 新規ダイスを追加する(アクティブダイスを追加する)
     if (Dice::DICE_PIPS_1 <= pips) and (pips <= Dice::DICE_PIPS_6)
         @active_dice.push(pips)
       return true
@@ -54,11 +79,16 @@ class Dice
   end
   
   def throwActive()
+    # アクティブダイスをすべて振りなおす
+    (0..(self.active_num-1)).each{ |dice_index|
+      throwActiveAt(dice_index)
+    }
   end
   
   def throwActiveAt(dice_index)
+    # 指定したアクティブダイスを振りなおす
     if dice_index < @active_dice.length
-      @active_dice[dice_index] = DICE_PIPS_6    # 仮に6に置き換える
+      @active_dice[dice_index] = rand(DICE_PIPS_1..DICE_PIPS_6)
       return true
     else
       return false
@@ -66,6 +96,7 @@ class Dice
   end
   
   def fix(dice_index)
+    # 指定したアクティブダイスを確定ダイスにする
     if dice_index < @active_dice.length
       @fixed_dice.push(@active_dice[dice_index])
       @active_dice.delete_at(dice_index)
@@ -75,20 +106,64 @@ class Dice
     end
   end
   
-  def active_dice_pips(dice_index = nil)
-    if dice_index != nil
-      return @active_dice[dice_index]
-    else
-      return @active_dice
-    end
+  def active_dice_pips()
+    # アクティブダイスの目の一覧
+    return @active_dice
+  end
+
+  def active_dice_pips_at(dice_index)
+    # 指定したアクティブダイスの目
+    return @active_dice[dice_index]
   end
   
   def fixed_dice_pips()
+    # 確定ダイスの目の一覧
     return @fixed_dice
   end
 end
 
 class Stock
+  # ゲームで利用する山札
+  #
+  # このクラスは下記で定義する山札のふるまいと、山札に含まれるカードの情報を取得する機能を提供する。
+  #
+  # - 山札には以下のカードが含まれる(各カードの枚数はプレイヤー人数によって変化する)
+  # - 次の条件を満たしているとき山札からカードを引くことができる
+  #     - カードの残り枚数が1枚以上である
+  #     - ダイスの目(のセット)がカードごとの獲得条件を満たしている
+  # - 山札からカードを引くとそのカードの枚数が1枚減る
+  #
+  # |カード名         |Lv |コスト                             |能力
+  # |-----------------|---|-----------------------------------|---------------------
+  # |道化師           |0  |出目合計0以上                      |アクティブダイス1個を振り直す
+  # |(ペテン師)       |0  |出目合計0以上かつ「道化師」を所持  |手番開始時、ダイスを1個追加
+  # |農夫             |I  |同じ出目2つ                        |手番開始時、ダイスを1個追加
+  # |メイド           |I  |出目すべてが奇数                   |ダイス1個の出目に1か2か3を加える
+  # |哲学者           |I  |出目すべてが偶数                   |ダイス1個の出目を-Xし、別のダイス1個の出目に+Xする(Xは任意の数。結果の出目は1～6の範囲内)
+  # |職人             |I  |出目合計15以上                     |出目「1」のダイスを1個追加
+  # |衛兵             |I  |同じ出目3つ                        |出目「2」のダイスを1個追加
+  # |狩人             |II |同じ出目4つ                        |出目「3」のダイスを1個追加
+  # |天文学者         |II |同じ出目2つが2組                   |アクティブダイス1個の出目を、確定したダイスの出目と同じ目に変更
+  # |商人             |II |出目合計20以上                     |任意の個数のアクティブダイスを振り直す
+  # |貴婦人           |III|同じ出目2つと同じ出目3つ           |任意の個数のアクティブダイスの出目に+1
+  # |質屋             |III|出目合計30以上                     |出目「4」のダイスを1個追加
+  # |騎士             |III|同じ出目5つ                        |出目「5」のダイスを1個追加
+  # |魔術師           |III|連続した出目5つ                    |アクティブダイス1個の出目を、任意の出目に変更
+  # |錬金術師         |IV |連続した出目6つ                    |アクティブダイス3個のあいだて、出目を-Xし、他のダイスを+Xする。3個の出目合計は同じに
+  # |司教             |IV |同じ出目2つが3組                   |出目「6」のダイスを1個追加
+  # |貴族             |IV |同じ出目3つが2組                   |任意の個数のアクティブダイスの出目に+2(出目「5」「6」を除く)
+  # |将軍             |IV |同じ出目6つ                        |手番開始時、ダイスを2個追加
+  # |王妃             |V  |「国王」を獲得している             |任意の出目のダイスを1個追加
+  # |国王             |V  |同じ出目7つ                        |「王妃」を獲得
+  #
+  # |Lv     |2人  |3人  |4人
+  # |-------|-----|-----|-----
+  # |0      |5    |5    |5
+  # |I      |2    |2    |3
+  # |II     |1    |2    |3
+  # |III/IV |1    |2    |2
+  # |V      |1    |1    |1
+
   INITIAL_CARD_NUM = 
   [
     # 0, I, II, III, IV, V
@@ -102,6 +177,7 @@ class Stock
   end
   
   def setup(player_num)
+    # プレイヤー人数に合わせて山札にカードをセットする
     card_num_index = player_num - 2
     @stock[Card::CLOWN]         = Stock::INITIAL_CARD_NUM[card_num_index][0]
     @stock[Card::FAKER]         = 0
@@ -125,8 +201,9 @@ class Stock
     @stock[Card::KING]          = Stock::INITIAL_CARD_NUM[card_num_index][5]
   end
   
-  def draw(card_index)
-    if @stock[card_index] > 0
+  def draw(card_index, dice)
+    # カードを山札から得る
+    if draw?(card_index, dice)
       @stock[card_index] -= 1
       return Card.new(card_index)
     else
@@ -135,17 +212,22 @@ class Stock
   end
   
   def draw?(card_index, dice)
+    # カードを山札から得られるか？
+
     # 残り枚数がなければ常に取れない
     if @stock[card_index] == 0
       return false
     end
     
     # 取得条件を満たせば取れる
+    # TODO カード個別のコスト判定を実装する
     # 今のところ常に取れることにする
     return true
   end
   
   def existKing?()
+    # 国王が山札に残っているか？
+
     # 国王が獲得済みならtrue
     if @stock[Card::KING] == 0
       return true
