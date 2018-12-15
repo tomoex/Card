@@ -8,6 +8,16 @@ def select_player(game)
   game.join(Player.new, 1)
 end
 
+def print_dice(fixed_dice_pips, active_dice_pips)
+  (0..(fixed_dice_pips.length - 1)).each{ |fixed_index|
+    print "[#{fixed_dice_pips[fixed_index]}]"
+  }
+  print "|"
+  (0..(active_dice_pips.length - 1)).each{ |active_index|
+    print "[#{active_dice_pips[active_index]}]"
+  }
+end
+
 def main()
   game = Game.new
   # 参加プレイヤー数を決定
@@ -45,6 +55,17 @@ def main()
       # ダイスを振る
       game.dice.throwActive()
       puts "#{game.dice.active_num}個、アクティブダイスを振った act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
+
+      # アニメーション付きでダイスを表示
+      (0..9).each{ |i|
+        print "\r"
+        print_dice(game.dice.fixed_dice_pips, Array.new(game.dice.active_num){rand(5)})
+        sleep 0.1
+      }
+      print "\r"
+      print_dice(game.dice.fixed_dice_pips, game.dice.active_dice_pips)
+      sleep 0.5
+      puts ""
 
       # 任意のカード効果を適用する
       while player.deck.availabel_skill_num != 0 do
