@@ -3,11 +3,12 @@
 require_relative 'Game'
 
 def select_player(game)
-  player_num = 2
+  player_num = 1
   game.join(Player.new, 0)
-  game.join(Player.new, 1)
+  # game.join(Player.new, 1)
 end
 
+# ダイスを表示
 def print_dice(fixed_dice_pips, active_dice_pips)
   (0..(fixed_dice_pips.length - 1)).each{ |fixed_index|
     print "[#{fixed_dice_pips[fixed_index]}]"
@@ -16,6 +17,19 @@ def print_dice(fixed_dice_pips, active_dice_pips)
   (0..(active_dice_pips.length - 1)).each{ |active_index|
     print "[#{active_dice_pips[active_index]}]"
   }
+end
+
+# アニメーション付きでダイスを表示
+def print_animation_dice(fixed_dice_pips, active_dice_pips)
+  (0..9).each{ |i|
+        print "\r"
+        print_dice(fixed_dice_pips, Array.new(active_dice_pips.length){rand(5)})
+        sleep 0.1
+      }
+      print "\r"
+      print_dice(fixed_dice_pips, active_dice_pips)
+      sleep 0.5
+      puts ""
 end
 
 def main()
@@ -48,26 +62,17 @@ def main()
         player.deck.card(index).skill.use(game.dice, nil)
       end
     }
-    puts "#{game.dice.active_num}個の初期ダイス act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
+    puts "#{game.dice.active_num}個の初期ダイスを入手"
 
     # ダイスがすべて確定するまで繰り返し
     while game.dice.active_num != 0 do
       # ダイスを振る
       game.dice.throwActive()
-      puts "#{game.dice.active_num}個、アクティブダイスを振った act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
+      # puts "#{game.dice.active_num}個、アクティブダイスを振った act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
+      puts "#{game.dice.active_num}個、アクティブダイスを振った"
+      print_animation_dice(game.dice.fixed_dice_pips, game.dice.active_dice_pips)
 
-      # アニメーション付きでダイスを表示
-      (0..9).each{ |i|
-        print "\r"
-        print_dice(game.dice.fixed_dice_pips, Array.new(game.dice.active_num){rand(5)})
-        sleep 0.1
-      }
-      print "\r"
-      print_dice(game.dice.fixed_dice_pips, game.dice.active_dice_pips)
-      sleep 0.5
-      puts ""
-
-      # 任意のカード効果を適用する
+      # (利用可能ならば)任意のカード効果を適用する
       while player.deck.availabel_skill_num != 0 do
         puts "能力を使用する(#{player.deck.availabel_card_index_name_list}, -1:終了)"
         card_index = player.use_skill(game.dice)
@@ -85,31 +90,34 @@ def main()
         end
       end
 
-      # 1個以上のアクティブダイスを確定させる
+      # (1個以上の)アクティブダイスを確定させる
       init_active_dice_num = game.dice.active_num
       while true do
-        puts "確定させるダイスを選ぶ([0]-[#{game.dice.active_num-1}]:選択, -1:終了) act:#{game.dice.active_dice_pips} fix:#{game.dice.fixed_dice_pips}"
+        puts "確定させるダイスを選ぶ(ダイスの出目を入力、複数指定はスペース区切り)"
 
-        dice_index = player.fix_dice(game.dice)
+        # 確定するアクティブダイスをプレイヤーが選択する
+        dice_pips = player.fix_dice(game.dice)
 
-        if dice_index != Player::DICE_NOT_SELECT
-          # 確定させる
-          game.dice.fix(dice_index)
-        else
-          if init_active_dice_num - game.dice.active_num >= 1
-            # 確定を終了
-            break
-          else
-            puts "最低1個確定する必要ある"
-          end
-        end
+        # アクティブダイスを確定する
+        dice_pips.each{|pips|
+          # ダイスの出目を内部的なindexに置き換えてfix()を呼ぶ
+          (0..(game.dice.active_num-1)).each{|active_index|
+            if game.dice.active_dice_pips_at(active_index) == pips
+              game.dice.fix(active_index)
+              break
+            end
+          }
+        }
 
-        if game.dice.active_num == 0
+        # アクティブダイスが0個(すべて確定) or 1個以上確定
+        if game.dice.active_num == 0 || init_active_dice_num - game.dice.active_num >= 1
           # すべて確定
           break
+        else
+          puts "最低1個確定する必要ある"
         end
       end
-      puts "ダイスを確定した #{game.dice.fixed_dice_pips}"
+      puts "#{game.dice.fixed_dice_pips} のダイスを確定した"
     end
     puts "すべてのダイスが確定した #{game.dice.fixed_dice_pips}"
 

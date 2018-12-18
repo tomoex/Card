@@ -16,10 +16,25 @@ class Player
     return skill_index.to_i
   end
   
+  def validate_dice(dice_index)
+    if 0 <= dice_index && dice_index <= 5
+      return true
+    else
+      return false
+    end
+  end
+
   def fix_dice(dice)
+    # 半角スペース区切りの数値列を受け付け、整数配列に変換して返す
     print "> "
-    dice_index = STDIN.gets
-    return dice_index.to_i
+    input = STDIN.gets
+    dice_index = input.split(" ")
+
+    dice_index_int = []
+    dice_index.each{|index|
+      dice_index_int.push(index.to_i)
+    }
+    return dice_index_int
   end
   
   def select_card(dice)
@@ -28,6 +43,7 @@ class Player
     return dice_index.to_i
   end
   
+
   def set_skill_parameter(dice, parameter_type)
     parameter = Skill::Parameter.new
     
